@@ -1,0 +1,11 @@
+---
+
+- name: Update all packages to the latest version
+  apt:
+    upgrade: yes
+    update_cache: yes
+
+- name: Install packages
+  apt: 
+    pkg: "{{ packages_list_for_install }}"
+    state: latest

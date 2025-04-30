@@ -1,0 +1,16 @@
+---
+# Setting up a certificate authority
+- name: cp /usr/share/easy-rsa to /etc/openvpn/
+  ansible.builtin.shell: cp -R /usr/share/easy-rsa /etc/openvpn/
+
+- name: Create a certificate authority and root certificate
+  ansible.builtin.shell: |
+    export EASYRSA=$(/etc/openvpn/easy-rsa)
+    /etc/openvpn/easy-rsa/easyrsa init-pki
+    echo -e "{{ ca_passphrase }}\n{{ ca_passphrase }}" | /etc/openvpn/easy-rsa/easyrsa build-ca
+
+- name: Create a dirrectory and cp for certs to /etc/openvpn/certs/
+  ansible.builtin.shell: |
+    mkdir /etc/openvpn/certs/
+    cp /etc/openvpn/easy-rsa/pki/ca.crt /etc/openvpn/certs/ca.crt
+

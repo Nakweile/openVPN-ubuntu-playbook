@@ -1,0 +1,10 @@
+---
+- 
+  name: Download openVPN on ubuntu server
+  hosts: vpn
+  become: true
+
+  # apt update and apt install openvpn easy-rsa net-tools
+  roles:
+    - Install_packages
+        

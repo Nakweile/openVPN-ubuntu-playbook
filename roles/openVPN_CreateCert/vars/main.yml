@@ -1,0 +1,4 @@
+---
+# vars file for openVPN-create-certificate
+
+ca_passphrase: "cats are very cute"

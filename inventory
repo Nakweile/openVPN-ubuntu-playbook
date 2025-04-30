@@ -1,0 +1,4 @@
+ubuntu_server ansible_host=192.168.1.15 ansible_user=kornilov_k ansible_ssh_privete_key=/home/kornilov_k/.ssh/id_rsa
+
+[vpn]
+ubuntu_server
