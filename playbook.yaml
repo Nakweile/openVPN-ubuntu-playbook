@@ -6,5 +6,6 @@
 
   # apt update and apt install openvpn easy-rsa net-tools
   roles:
-    - Install_packages
-        
+    - install_packages
+    - openVPN_Basic_Server_Setup
+    - openVPN_CreateCert

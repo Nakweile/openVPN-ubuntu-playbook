@@ -4,4 +4,4 @@
 packages_list_for_install:
   - openvpn
   - easy-rsa
-  - net-tools
+  - iptables-persistent

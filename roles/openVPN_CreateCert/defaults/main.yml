@@ -1,2 +1,4 @@
 ---
 # defaults file for openVPN-create-certificate
+openvpn_dir: "/etc/openvpn"
+openvpn_easy_rsa_dir: "/usr/share/easy-rsa"

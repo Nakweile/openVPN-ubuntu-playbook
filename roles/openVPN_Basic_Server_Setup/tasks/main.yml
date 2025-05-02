@@ -1,0 +1,21 @@
+---
+# tasks file for openVPN_Basic_Server_Setup
+
+- name: Set ip forwarding on in /proc and in the sysctl file and reload if necessary
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: true
+    state: present
+    reload: true
+
+- name: Add an entry to IPTables that enables the NAT mechanism
+  ansible.builtin.iptables:
+    table: nat
+    chain: POSTROUTING
+    protocol: all
+    source: '0.0.0.0/0'
+    destination: '0.0.0.0/0'
+    jump: MASQUERADE
+    comment: Ansible NAT MASQUERADE
+  become: true 

@@ -1,16 +1,46 @@
 ---
 # Setting up a certificate authority
-- name: cp /usr/share/easy-rsa to /etc/openvpn/
-  ansible.builtin.shell: cp -R /usr/share/easy-rsa /etc/openvpn/
+- name: "ensure {{ openvpn_easy_rsa_dir }}/easy-rsa exist"
+  ansible.builtin.file: 
+    path: "{{ openvpn_dir }}/easy-rsa"
+    state: directory
+    mode: "0755"
 
-- name: Create a certificate authority and root certificate
-  ansible.builtin.shell: |
-    export EASYRSA=$(/etc/openvpn/easy-rsa)
-    /etc/openvpn/easy-rsa/easyrsa init-pki
-    echo -e "{{ ca_passphrase }}\n{{ ca_passphrase }}" | /etc/openvpn/easy-rsa/easyrsa build-ca
+- name: create vars file
+  copy:
+    dest: "{{ openvpn_easy_rsa_dir }}/vars"
+    content: |
+      set_var EASYRSA_ALGO "ec"
+      et_var EASYRSA_DIGEST "sha512"
 
-- name: Create a dirrectory and cp for certs to /etc/openvpn/certs/
-  ansible.builtin.shell: |
-    mkdir /etc/openvpn/certs/
-    cp /etc/openvpn/easy-rsa/pki/ca.crt /etc/openvpn/certs/ca.crt
+- name: easy-rsa init-pki
+  ansible.builtin.shell: "{{ openvpn_easy_rsa_dir }}/easyrsa init-pki"
+  args:
+    chdir: "{{ openvpn_dir }}/easy-rsa" 
+    creates: "{{ openvpn_dir }}/easy-rsa/pki"
 
+- name: easy-rsa build-ca nopass
+  ansible.builtin.shell: "{{ openvpn_easy_rsa_dir }}/easyrsa build-ca nopass"
+  args:
+    chdir: "{{ openvpn_dir }}/easy-rsa" 
+    creates: "{{ openvpn_dir }}/easy-rsa/pki/ca.crt"
+  environment: 
+    EASYRSA_BATCH: "yes"
+
+- name: easy-rsa gen-dh
+  ansible.builtin.shell: "{{ openvpn_easy_rsa_dir }}/easyrsa gen-dh"
+  args:
+    chdir: "{{ openvpn_dir }}/easy-rsa" 
+    creates: "{{ openvpn_dir }}/easy-rsa/pki/dh.pem"
+
+- name: easy-rsa server nopass
+  ansible.builtin.shell: "echo yes | {{ openvpn_easy_rsa_dir }}/easyrsa build-server-full vpn-server nopass"
+  args:
+    chdir: "{{ openvpn_dir }}/easy-rsa"
+    creates: "{{ openvpn_dir }}/easy-rsa/pki/issued/vpn-server.crt"
+
+#- name: easy-rsa gen-crl nopass
+#  ansible.builtin.shell: "{{ openvpn_easy_rsa_dir }}/easyrsa gen-crl"
+#  args:
+#    chdir: "{{ openvpn_dir }}/easy-rsa"
+#    creates:  "{{ openvpn_dir }}/easy-rsa/pki/crl.pem"
