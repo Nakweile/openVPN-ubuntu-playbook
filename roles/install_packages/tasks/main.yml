@@ -9,3 +9,5 @@
   ansible.builtin.apt:
     pkg: "{{ packages_list_for_install }}"
     state: latest
+  notify:
+   - enabled services

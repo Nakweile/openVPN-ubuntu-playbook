@@ -2,3 +2,13 @@
 # defaults file for openVPN-create-certificate
 openvpn_dir: "/etc/openvpn"
 openvpn_easy_rsa_dir: "/usr/share/easy-rsa"
+
+#network
+openvpn_ip: 192.168.1.15
+openvpn_netmask: 255.255.255.0
+openvpn_port: "1194"
+openvpn_protocol: "udp"
+
+openvpn_clients_list: 
+  - kirill_phone
+  - kirill_laptop

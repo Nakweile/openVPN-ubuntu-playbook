@@ -5,3 +5,6 @@ packages_list_for_install:
   - openvpn
   - easy-rsa
   - iptables-persistent
+
+packages_list_for_enabled:
+  - openvpn

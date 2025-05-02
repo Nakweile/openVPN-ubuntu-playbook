@@ -1,2 +1,7 @@
 ---
 # handlers file for openVPN-create-certificate
+
+- name: restart openvpn
+  ansible.builtin.service:
+    name: openvpn
+    state: restarted
