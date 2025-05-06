@@ -1,25 +1,18 @@
 ---
 # Setting up a certificate authority
-- name: "ensure {{ openvpn_easy_rsa_dir }}/easy-rsa exist"
+- name: "Ensure {{ openvpn_dir }}/easy-rsa exist"
   ansible.builtin.file: 
     path: "{{ openvpn_dir }}/easy-rsa"
     state: directory
     mode: "0755"
 
-- name: create vars file
-  copy:
-    dest: "{{ openvpn_easy_rsa_dir }}/vars"
-    content: |
-      set_var EASYRSA_ALGO "ec"
-      et_var EASYRSA_DIGEST "sha512"
-
-- name: easy-rsa init-pki
+- name: Easy-rsa init-pki
   ansible.builtin.shell: "{{ openvpn_easy_rsa_dir }}/easyrsa init-pki"
   args:
     chdir: "{{ openvpn_dir }}/easy-rsa" 
     creates: "{{ openvpn_dir }}/easy-rsa/pki"
 
-- name: easy-rsa build-ca nopass
+- name: Easy-rsa build-ca nopass
   ansible.builtin.shell: "{{ openvpn_easy_rsa_dir }}/easyrsa build-ca nopass"
   args:
     chdir: "{{ openvpn_dir }}/easy-rsa" 
@@ -27,40 +20,33 @@
   environment: 
     EASYRSA_BATCH: "yes"
 
-- name: easy-rsa gen-dh
-  ansible.builtin.shell: "{{ openvpn_easy_rsa_dir }}/easyrsa gen-dh"
-  args:
-    chdir: "{{ openvpn_dir }}/easy-rsa" 
-    creates: "{{ openvpn_dir }}/easy-rsa/pki/dh.pem"
-
-- name: easy-rsa build-server-full vpn-server nopass
-  ansible.builtin.shell: "echo yes | {{ openvpn_easy_rsa_dir }}/easyrsa build-server-full vpn-server nopass"
+- name: Easy-rsa build-server-full server nopass
+  ansible.builtin.shell: "{{ openvpn_easy_rsa_dir }}/easyrsa build-server-full server nopass"
   args:
     chdir: "{{ openvpn_dir }}/easy-rsa"
-    creates: "{{ openvpn_dir }}/easy-rsa/pki/issued/vpn-server.crt"
+    creates: "{{ openvpn_dir }}/easy-rsa/pki/issued/server.crt"
+  environment: 
+    EASYRSA_BATCH: "yes"
 
-# Client
-- name: "easy-rsa build-client-full Clients nopass"
-  ansible.builtin.shell: "echo yes | {{ openvpn_easy_rsa_dir }}/easyrsa build-client-full {{ item }} nopass"
+- name: Easy-rsa dh.pem nopass
+  ansible.builtin.shell: "{{ openvpn_easy_rsa_dir }}/easyrsa gen-dh nopass"
   args:
     chdir: "{{ openvpn_dir }}/easy-rsa"
-    creates: "{{ openvpn_dir }}/easy-rsa/pki/issued/{{ item }}.crt"
-  with_items: 
-    - "{{ openvpn_clients_list }}"
-#
+    creates:  "{{ openvpn_dir }}/easy-rsa/pki/dh.pem"
 
-- name: easy-rsa gen-crl nopass
+# CRL — Certificate Revocation List
+- name: Easy-rsa gen-crl nopass
   ansible.builtin.shell: "{{ openvpn_easy_rsa_dir }}/easyrsa gen-crl"
   args:
     chdir: "{{ openvpn_dir }}/easy-rsa"
     creates:  "{{ openvpn_dir }}/easy-rsa/pki/crl.pem"
 
-- name: openvpn genkey
-  ansible.builtin.shell: "openvpn --genkey --secret {{ openvpn_dir }}/easy-rsa/pki/ta.key"
+- name: Openvpn genkey
+  ansible.builtin.shell: "openvpn --genkey secret {{ openvpn_dir }}/easy-rsa/pki/ta.key"
   args:
     creates:  "{{ openvpn_dir }}/easy-rsa/pki/ta.key"
 
-- name: "copy cert files to {{ openvpn_dir }}/server"
+- name: "Copy cert files to {{ openvpn_dir }}/server"
   ansible.builtin.copy:
     src: "{{ openvpn_dir }}/easy-rsa/pki/{{ item }}"
     dest: "{{ openvpn_dir }}/server/{{ item | basename }}"
@@ -69,12 +55,12 @@
   loop:
     - ca.crt
     - dh.pem
+    - crl.pem
     - ta.key
-    - private/ca.key
-    - issued/vpn-server.crt
-    - private/vpn-server.key
+    - issued/server.crt
+    - private/server.key
 
-- name: create server.conf
+- name: Create server.conf
   ansible.builtin.template:
     src: server.conf.j2
     dest: "{{ openvpn_dir }}/server.conf"
@@ -83,3 +69,99 @@
     mode: "0644"
   notify:
     - restart openvpn
+
+- name: start openvpn@server
+  ansible.builtin.service:
+    name: openvpn@server
+    enabled: true
+    state: started
+
+# generation clients crt and key 
+- name: "Easy-rsa build-client-full Clients nopass"
+  ansible.builtin.shell: "{{ openvpn_easy_rsa_dir }}/easyrsa build-client-full {{ item }} nopass"
+  args:
+    chdir: "{{ openvpn_dir }}/easy-rsa"
+    creates: "{{ openvpn_dir }}/easy-rsa/pki/issued/{{ item }}.crt"
+  with_items: 
+    - "{{ openvpn_clients_list }}"
+  environment: 
+    EASYRSA_BATCH: "yes"
+#
+
+# Setting up .opv client files
+- name: "Ensure {{ openvpn_easy_rsa_dir }}/client exist"
+  ansible.builtin.file: 
+    path: "{{ openvpn_dir }}/client"
+    state: directory
+    mode: "0755"
+
+- name: "Copy cert files to {{ openvpn_dir }}/client"
+  ansible.builtin.copy:
+    src: "{{ openvpn_dir }}/easy-rsa/pki/{{ item }}"
+    dest: "{{ openvpn_dir }}/client/{{ item | basename }}"
+    mode: "0644"
+    remote_src: true
+  loop:
+    - ca.crt
+    - ta.key
+  
+- name: "Copy clients-crt files to {{ openvpn_dir }}/client"
+  ansible.builtin.copy:
+    src: "{{ openvpn_dir }}/easy-rsa/pki/issued/{{ item }}.crt"
+    dest: "{{ openvpn_dir }}/client/{{ item }}.crt"
+    mode: "0644"
+    remote_src: true
+  with_items:
+    - "{{ openvpn_clients_list }}"
+
+- name: "Copy clients-key files to {{ openvpn_dir }}/client"
+  ansible.builtin.copy:
+    src: "{{ openvpn_dir }}/easy-rsa/pki/private/{{ item }}.key"
+    dest: "{{ openvpn_dir }}/client/{{ item }}.key"
+    mode: "0644"
+    remote_src: true
+  with_items:
+    - "{{ openvpn_clients_list }}"
+
+- name: Register ca.crt as var
+  ansible.builtin.slurp:
+    src: "{{ openvpn_dir }}/client/ca.crt"
+  register: openvpn_ca_cert
+
+- name: Register ta.key as var
+  ansible.builtin.slurp:
+    src: "{{ openvpn_dir }}/client/ta.key"
+  register: openvpn_ta_key
+
+- name: Register clients.crt as var
+  ansible.builtin.slurp:
+    src: "{{ openvpn_dir }}/client/{{ item }}.crt"
+  with_items:
+    - "{{ openvpn_clients_list }}"
+  register: openvpn_client_cert
+
+- name: Register clients.key as var
+  ansible.builtin.slurp:
+    src: "{{ openvpn_dir }}/client/{{ item }}.key"
+  with_items:
+    - "{{ openvpn_clients_list }}"
+  register: openvpn_client_key
+
+- name: Generate clients .ovpn config
+  ansible.builtin.template:
+    src: client.ovpn.j2
+    dest: "{{ openvpn_dir }}/client/{{ item.0.item }}.ovpn"
+    owner: root
+    group: root
+    mode: "0400"
+  with_together:
+    - "{{ openvpn_client_cert.results }}"
+    - "{{ openvpn_client_key.results }}"
+
+- name: Fetch clients .ovpn config
+  ansible.builtin.fetch:
+    src:  "{{ openvpn_dir }}/client/{{ item }}.ovpn"
+    dest: "{{ playbook_dir }}/ovpn/{{ item }}.ovpn"
+    flat: true
+  with_items:
+    - "{{ openvpn_clients_list }}"

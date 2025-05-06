@@ -3,15 +3,16 @@ proto {{ openvpn_protocol }}
 dev tun
 
 ca {{ openvpn_dir }}/server/ca.crt
-cert {{ openvpn_dir }}/server/vpn-server.crt
-key {{ openvpn_dir }}/server/vpn-server.key
+cert {{ openvpn_dir }}/server/server.crt
+key {{ openvpn_dir }}/server/server.key
 dh {{ openvpn_dir }}/server/dh.pem
+crl-verify {{ openvpn_dir }}/server/crl.pem
 
-tls-auth {{ openvpn_dir }}/server/ta.key 0
+tls-auth {{ openvpn_dir }}/server/ta.key
 cipher AES-256-CBC
-auth SHA256
+auth SHA512
 
-server {{ openvpn_ip }} {{ openvpn_netmask }}
+server 10.8.0.0 {{ openvpn_netmask }}
 ifconfig-pool-persist ipp.txt
 push "redirect-gateway def1 bypass-dhcp"
 push "dhcp-option DNS 1.0.0.1"
@@ -22,7 +23,6 @@ push "dhcp-option DNS 8.8.4.4"
 keepalive 10 120
 persist-key
 persist-tun
-comp-lzo
 
 user nobody
 group nogroup
@@ -31,4 +31,3 @@ status /var/log/openvpn/openvpn-status.log
 log         /var/log/openvpn/openvpn.log
 log-append  /var/log/openvpn/openvpn.log
 verb 3
-explicit-exit-notify 1

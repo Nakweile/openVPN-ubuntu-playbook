@@ -4,7 +4,6 @@
   hosts: vpn
   become: true
 
-  # apt update and apt install openvpn easy-rsa net-tools
   roles:
     - install_packages
     - openVPN_Basic_Server_Setup

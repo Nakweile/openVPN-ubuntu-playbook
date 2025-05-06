@@ -2,8 +2,8 @@
 # handlers file for Install_packages
 - name: enabled services
   ansible.builtin.service:
-    name: {{ item }}
+    name: "{{ item }}"
     enabled: true
     state: started
   with_items:
-    - {{ packages_list_for_restart }}
+    - "{{ packages_list_for_enabled }}"

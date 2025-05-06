@@ -1,2 +1,4 @@
 ---
-# handlers file for openVPN_Basic_Server_Setup
+#handlers file for openVPN_Basic_Server_Setup
+- name: save iptables rules
+  ansible.builtin.shell: netfilter-persistent save
