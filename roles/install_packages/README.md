@@ -13,7 +13,7 @@ The default variable for the role is Python3.
 Example Playbook
 ----------------
 
-Example of how to use your role:
+Example of how to use role:
 
 1. When specifying variables in a variable file::
 ````
@@ -31,6 +31,17 @@ Example of how to use your role:
 			  - bat
 			  - nginx
 ````
+
+Requirements
+------------
+
+- Ansible 2.9+
+
+- Recommended to run as root (or with become: true)
+
+- Required collections:
+
+  - ansible.builtin (included by default)
 
 License
 -------

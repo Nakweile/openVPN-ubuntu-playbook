@@ -1,4 +1,4 @@
 ---
-# defaults file for Install_packages
+# default files for Install_packages
 packages_list_for_install:
   - Python3

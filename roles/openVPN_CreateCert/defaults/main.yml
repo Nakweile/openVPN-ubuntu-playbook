@@ -1,14 +1,16 @@
 ---
-# defaults file for openVPN-create-certificate
+# defaults files and dir for openVPN-create-certificate
 openvpn_dir: "/etc/openvpn"
 openvpn_easy_rsa_dir: "/usr/share/easy-rsa"
 
-#network
+# network settings
 openvpn_ip: "{{ ansible_default_ipv4.address }}"
 openvpn_netmask: 255.255.255.0
 openvpn_port: "1194"
 openvpn_protocol: "udp"
 
+# list of clients for openvpn
 openvpn_clients_list: 
   - kirill_phone
   - kirill_laptop
+  - kirill_adf

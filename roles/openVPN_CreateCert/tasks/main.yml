@@ -1,4 +1,5 @@
 ---
+
 # Setting up a certificate authority
 - name: "Ensure {{ openvpn_dir }}/easy-rsa exist"
   ansible.builtin.file: 
@@ -20,6 +21,7 @@
   environment: 
     EASYRSA_BATCH: "yes"
 
+# Generation server crt and key
 - name: Easy-rsa build-server-full server nopass
   ansible.builtin.shell: "{{ openvpn_easy_rsa_dir }}/easyrsa build-server-full server nopass"
   args:
@@ -76,7 +78,7 @@
     enabled: true
     state: started
 
-# generation clients crt and key 
+# Generation clients crt and key 
 - name: "Easy-rsa build-client-full Clients nopass"
   ansible.builtin.shell: "{{ openvpn_easy_rsa_dir }}/easyrsa build-client-full {{ item }} nopass"
   args:
@@ -86,7 +88,6 @@
     - "{{ openvpn_clients_list }}"
   environment: 
     EASYRSA_BATCH: "yes"
-#
 
 # Setting up .opv client files
 - name: "Ensure {{ openvpn_easy_rsa_dir }}/client exist"
@@ -123,6 +124,7 @@
   with_items:
     - "{{ openvpn_clients_list }}"
 
+# Preparing variables for generating the client configuration
 - name: Register ca.crt as var
   ansible.builtin.slurp:
     src: "{{ openvpn_dir }}/client/ca.crt"
@@ -147,6 +149,7 @@
     - "{{ openvpn_clients_list }}"
   register: openvpn_client_key
 
+# Generating the client configuration
 - name: Generate clients .ovpn config
   ansible.builtin.template:
     src: client.ovpn.j2
@@ -158,6 +161,7 @@
     - "{{ openvpn_client_cert.results }}"
     - "{{ openvpn_client_key.results }}"
 
+# Download client .opvpn config to ansible controller
 - name: Fetch clients .ovpn config
   ansible.builtin.fetch:
     src:  "{{ openvpn_dir }}/client/{{ item }}.ovpn"

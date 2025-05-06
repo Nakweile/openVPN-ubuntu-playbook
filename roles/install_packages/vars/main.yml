@@ -1,10 +1,11 @@
 ---
-# vars file for Install_packages
 
+# list for Install_packages
 packages_list_for_install:
   - openvpn
   - easy-rsa
   - iptables-persistent
 
+# list for enabled packages
 packages_list_for_enabled:
   - openvpn

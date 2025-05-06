@@ -1,31 +1,79 @@
-Role Name
+OpenVPN Certificate Authority & Client Configuration Role
 =========
 
-A brief description of the role goes here.
+This Ansible role automates the setup of a Certificate Authority (CA) and the generation of server and client certificates for an OpenVPN deployment using Easy-RSA.
 
-Requirements
-------------
+Features
+--------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+- Initializes a Public Key Infrastructure (PKI) using Easy-RSA.
+
+- Builds a CA, server certificates, and client certificates (no password).
+
+- Generates dh.pem, crl.pem, and ta.key for enhanced security.
+
+- Copies necessary certificate files to the OpenVPN server directory.
+
+- Generates the server.conf from a template and starts the OpenVPN server.
+
+- Prepares .ovpn configuration files for clients, fully bundled with certs/keys.
+
+- Fetches the client .ovpn files to the Ansible controller for distribution.
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+|Variable|Description|Required|Example| 
+|--|--|--|--|
+|`openvpn_dir`|Base directory for OpenVPN setup|Yes|`/etc/openvpn`|
+|`openvpn_easy_rsa_dir`|Path to Easy-RSA scripts|Yes|`/usr/share/easy-rsa`|
+|openvpn_clients_list|List of client names to generate certificates|Yes|`['client1', 'client2']`|
 
-Dependencies
-------------
-
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+*It is recommended to specify variables in the defaults folder*
 
 Example Playbook
 ----------------
 
 Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+```
+- 
+  name: Download openVPN on ubuntu server
+  hosts: vpn
+  become: true
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+  roles:
+    - openVPN_CreateCert
+
+```
+
+Templates
+---------
+
+Make sure the following templates exist in the role's templates/ directory:
+
+- server.conf.j2 – server configuration template
+
+- client.ovpn.j2 – client configuration template
+
+Requirements
+------------
+
+OpenVPN installed on the target host
+
+- Easy-RSA available on the system
+
+- Ansible 2.9+
+
+- Root privileges (become: true)
+
+Output
+------
+
+Client configuration files in .ovpn format will be downloaded to:
+```
+<your playbook directory>/ovpn/<client_name>.ovpn
+```
+These files can be directly used by OpenVPN clients.
 
 License
 -------
@@ -36,3 +84,7 @@ Author Information
 ------------------
 
 An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+
+Kornilov Kirill
+
+kornilov.kd@mail.ru

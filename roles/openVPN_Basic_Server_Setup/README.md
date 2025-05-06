@@ -1,31 +1,47 @@
-Role Name
+OpenVPN Basic Server Setup Role
 =========
 
-A brief description of the role goes here.
-
-Requirements
-------------
-
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+The openVPN_Basic_Server_Setup Ansible role configures basic network settings required for an OpenVPN server. Specifically, it enables IP forwarding and adds a NAT masquerade rule to iptables.
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+- Enables IP forwarding (net.ipv4.ip_forward).
 
-Dependencies
-------------
+- Adds a NAT masquerade rule for the VPN subnet 10.8.0.0/24.
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+- Supports saving iptables rules via a handler.
 
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+Example of how to use role:
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+1. When specifying variables in a variable file::
+````
+  - hosts: vpn_servers
+    become: true
+    roles:
+    - openVPN_Basic_Server_Setup
+````
+
+Requirements
+------------
+
+- Ansible 2.9+
+
+- Recommended to run as root (or with become: true)
+
+- Required collections:
+
+  - ansible.builtin (included by default)
+
+Notes
+-----
+
+- Make sure iptables is installed and used as the active firewall.
+
+- The default subnet (10.8.0.0/24) and interface are assumed; you can modify the role if needed.
 
 License
 -------
@@ -35,4 +51,6 @@ BSD
 Author Information
 ------------------
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+Kornilov Kirill
+
+kornilov.kd@mail.ru
