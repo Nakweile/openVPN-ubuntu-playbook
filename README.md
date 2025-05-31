@@ -8,7 +8,7 @@
 ---
 OpenVPN Setup Playbook
 ----------------------
-This playbook automates the installation and basic configuration of an OpenVPN server on Ubuntu.
+This playbook automates the installation and basic configuration of an OpenVPN server on Ubuntu 22.04.
 
 Features
 --------
